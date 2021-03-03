@@ -12,53 +12,59 @@ persistence:
   storageClass: nfs
   size: 1Gi
 configs:
-  job_conf.xml: |
-    <job_conf>
-        <plugins>
-            <plugin id="local" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner" workers="4" />
-            <plugin id="k8s" type="runner" load="galaxy.jobs.runners.kubernetes:KubernetesJobRunner">
-              <param id="k8s_use_service_account">true</param>
-              <param id="k8s_persistent_volume_claims">
-              {{- template "galaxy.pvcname" . -}}:{{.Values.persistence.mountPath}}
-              {{- if .Values.cvmfs.enabled -}}
-              ,{{- template "galaxy.fullname" . -}}-cvmfs-gxy-data-pvc:{{.Values.cvmfs.data.mountPath}},
-              {{- template "galaxy.fullname" . -}}-cvmfs-gxy-main-pvc:{{.Values.cvmfs.main.mountPath}}
-              {{- end -}}
-              {{- if .Values.extraVolumes -}}
-              {{- template "galaxy.extra_pvc_mounts" . -}}
-              {{- end -}}
-              </param>
-              <param id="k8s_namespace">{{ .Release.Namespace }}</param>
-              <param id="k8s_galaxy_instance_id">{{ .Release.Name }}</param>
-              <param id="k8s_run_as_user_id">0</param>
-              <param id="k8s_pull_policy">IfNotPresent</param>
-              <param id="k8s_cleanup_job">onsuccess</param>
-              {{- if .Values.jobs.priorityClass.enabled }}
-              <param id="k8s_pod_priority_class">{{- template "galaxy.pod-priority-class" . -}}</param>
-              {{- end }}
-            </plugin>
-        </plugins>
-        <handlers assign_with="db-skip-locked" />
-        <destinations default="dynamic-k8s-dispatcher">
-            <destination id="local" runner="local"/>
-            <destination id="dynamic-k8s-dispatcher" runner="dynamic">
-              <param id="type">python</param>
-              <param id="function">k8s_container_mapper</param>
-              <param id="docker_default_container_id">{{ .Values.image.repository }}:{{ .Values.image.tag }}</param>
-              <param id="docker_enabled">true</param>
-            </destination>
-        </destinations>
-        <limits>
-            <limit type="registered_user_concurrent_jobs">5</limit>
-            <limit type="anonymous_user_concurrent_jobs">2</limit>
-        </limits>
-    </job_conf>
+  job_conf.yml:
+    execution:
+      environments:
+        dynamic_k8s_dispatcher:
+          container_monitor: false
+    runners:
+      k8s:
+        k8s_run_as_user_id: '0'
+        k8s_run_as_group_id: '0'
+        k8s_interactivetools_use_ssl: true
+        k8s_interactivetools_ingress_annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          kubernetes.io/tls-acme: "true"
   galaxy.yml:
     galaxy:
-      single_user: "example@fake.org"
-      admin_users: "example@fake.org"
-      enable_tool_document_cache: "true"
-
+      logo_src: /galaxy/static/favicon.png
+      single_user: "alex@fake.org"
+      admin_users: "alex@fake.org"
+      interactivetools_enable: true
+      outputs_to_working_directory: true
+      interactivetools_prefix: it
+      interactivetools_map: database/interactivetools_map.sqlite
+      interactivetools_proxy_host: "{{ $host := index .Values.ingress.hosts 0 }}{{$host.host}}"
+      galaxy_infrastructure_url: "http://{{$host := index .Values.ingress.hosts 0}}{{$path := index $host.paths 0}}{{$host.host}}{{$path.path}}"
+      interactivetools_shorten_url: True
+      tool_config_file: "/galaxy/server/config/tool_conf.xml,/cvmfs/cloud.galaxyproject.org/config/shed_tool_conf.xml,/galaxy/server/config/tool_conf_its.xml"
+  tool_conf_its.xml: |
+    <toolbox monitor="true">
+        <section id="interactivetools" name="Interactive Tools">
+            <tool file="interactive/interactivetool_jupyter_notebook.xml" />
+            <tool file="interactive/interactivetool_terminal.xml" />
+            <tool file="interactive/interactivetool_askomics.xml" />
+            <tool file="interactive/interactivetool_bam_iobio.xml" />
+            <tool file="interactive/interactivetool_cellxgene.xml" />
+            <tool file="interactive/interactivetool_climate_notebook.xml" />
+            <tool file="interactive/interactivetool_ethercalc.xml" />
+            <tool file="interactive/interactivetool_geoexplorer.xml" />
+            <tool file="interactive/interactivetool_guacamole_desktop.xml" />
+            <tool file="interactive/interactivetool_hicbrowser.xml" />
+            <tool file="interactive/interactivetool_higlass.xml" />
+            <tool file="interactive/interactivetool_openrefine.xml" />
+            <tool file="interactive/interactivetool_panoply.xml" />
+            <tool file="interactive/interactivetool_paraview.xml" />
+            <tool file="interactive/interactivetool_phinch.xml" />
+            <tool file="interactive/interactivetool_pyiron.xml" />
+            <tool file="interactive/interactivetool_radiant.xml" />
+            <tool file="interactive/interactivetool_rstudio.xml" />
+            <tool file="interactive/interactivetool_vcf_iobio.xml" />
+            <tool file="interactive/interactivetool_wallace.xml" />
+            <tool file="interactive/interactivetool_wilson.xml" />
+            <tool file="/galaxy/server/config/interactivetool_terminal.xml" />
+        </section>
+    </toolbox>
 ingress:
   enabled: true
   annotations:
@@ -68,6 +74,7 @@ ingress:
     - host: "domain.example.com"
       paths:
         - path: "/galaxy"
+  path: "/galaxy"
   tls:
     - hosts: ["domain.example.com"]
       secretName: "galaxy-domain-example-com-key"

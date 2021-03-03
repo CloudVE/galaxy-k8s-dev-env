@@ -9,10 +9,16 @@ fi
 
 if [ -z "$2" ]
   then
-    echo "You must supply a domain name. eg: bash update_links.sh my_branch my.domain.com. Hint: use 192.168.2.2.xip.io for IPs"
+    echo "You must supply a domain name. eg: bash update_links.sh my_branch my.domain.com [origin/dev]. Hint: use 192.168.2.2.xip.io for IPs"
     exit
 fi
 
+if [ -z "$3" ]
+  then
+    BASE_REF="origin/dev"
+  else
+    BASE_REF=$3
+fi
 
 BASEDIR=$(pwd)
 BRANCHDIR="$BASEDIR/branches/$1"
@@ -20,7 +26,8 @@ BRANCHDIR="$BASEDIR/branches/$1"
 cd "$BRANCHDIR/galaxy"
 
 # Abort if anything but modified and added
-abort=$(git diff --name-status "dev" "$1" | cut -c1 | grep -E "C|D|R|T|U|X|B" )
+
+abort=$(git diff --name-status $BASE_REF "$1" | cut -c1 | grep -E "C|D|R|T|U|X|B" )
 
 if [[ -n $abort ]]; then
 
@@ -29,7 +36,7 @@ if [[ -n $abort ]]; then
 fi
 
 echo "Making list"
-git diff --name-only "dev" "$1" > ../filelist
+git diff --name-only "$BASE_REF" "$1" > ../filelist
 git diff --name-only >> ../filelist
 sort -u ../filelist >> ../unique
 cat ../unique
@@ -53,6 +60,7 @@ do
     useSecret: false
     applyToJob: true
     applyToWeb: true
+    applyToWorkflow: true
     content: |
       {{- (.Files.Get "extrafiles/$p") }}
 EOF
