@@ -1,0 +1,74 @@
+image:
+  repository: galaxy/galaxy-min
+  tag: latest
+  # pullPolicy: Always
+cvmfs:
+  enabled: true
+  deploy: false
+  cache:
+    alienCache:
+      storageClass: nfs
+persistence:
+  storageClass: nfs
+  size: 50Gi
+configs:
+  job_conf.xml: |
+    <job_conf>
+        <plugins>
+            <plugin id="local" type="runner" load="galaxy.jobs.runners.local:LocalJobRunner" workers="4" />
+            <plugin id="k8s" type="runner" load="galaxy.jobs.runners.kubernetes:KubernetesJobRunner">
+              <param id="k8s_use_service_account">true</param>
+              <param id="k8s_persistent_volume_claims">
+              {{- template "galaxy.pvcname" . -}}:{{.Values.persistence.mountPath}}
+              {{- if .Values.cvmfs.enabled -}}
+              ,{{- template "galaxy.fullname" . -}}-cvmfs-gxy-data-pvc:{{.Values.cvmfs.data.mountPath}},
+              {{- template "galaxy.fullname" . -}}-cvmfs-gxy-main-pvc:{{.Values.cvmfs.main.mountPath}}
+              {{- end -}}
+              {{- if .Values.extraVolumes -}}
+              {{- template "galaxy.extra_pvc_mounts" . -}}
+              {{- end -}}
+              </param>
+              <param id="k8s_namespace">{{ .Release.Namespace }}</param>
+              <param id="k8s_galaxy_instance_id">{{ .Release.Name }}</param>
+              <param id="k8s_run_as_user_id">0</param>
+              <param id="k8s_pull_policy">IfNotPresent</param>
+              <param id="k8s_cleanup_job">onsuccess</param>
+              {{- if .Values.jobHandlers.priorityClass.enabled }}
+              <param id="k8s_pod_priority_class">{{- template "galaxy.pod-priority-class" . -}}</param>
+              {{- end }}
+            </plugin>
+        </plugins>
+        <handlers assign_with="db-skip-locked" />
+        <destinations default="dynamic-k8s-dispatcher">
+            <destination id="local" runner="local"/>
+            <destination id="dynamic-k8s-dispatcher" runner="dynamic">
+              <param id="type">python</param>
+              <param id="function">k8s_container_mapper</param>
+              <param id="docker_default_container_id">{{ .Values.image.repository }}:{{ .Values.image.tag }}</param>
+              <param id="docker_enabled">true</param>
+            </destination>
+        </destinations>
+        <limits>
+            <limit type="registered_user_concurrent_jobs">5</limit>
+            <limit type="anonymous_user_concurrent_jobs">2</limit>
+        </limits>
+    </job_conf>
+  galaxy.yml:
+    galaxy:
+      logo_src: /galaxy/static/favicon.png
+      single_user: "example@fake.org"
+      admin_users: "example@fake.org"
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - "domain.example.com"
+  tls:
+    - hosts: ["domain.example.com"]
+      secretName: "galaxy-domain-example-com-key"
+postgresql:
+  galaxyDatabasePassword: qweasdzxc
+
