@@ -10,7 +10,7 @@ cvmfs:
       storageClass: nfs
 persistence:
   storageClass: nfs
-  size: 50Gi
+  size: 1Gi
 configs:
   job_conf.xml: |
     <job_conf>
@@ -33,7 +33,7 @@ configs:
               <param id="k8s_run_as_user_id">0</param>
               <param id="k8s_pull_policy">IfNotPresent</param>
               <param id="k8s_cleanup_job">onsuccess</param>
-              {{- if .Values.jobHandlers.priorityClass.enabled }}
+              {{- if .Values.jobs.priorityClass.enabled }}
               <param id="k8s_pod_priority_class">{{- template "galaxy.pod-priority-class" . -}}</param>
               {{- end }}
             </plugin>
@@ -55,9 +55,9 @@ configs:
     </job_conf>
   galaxy.yml:
     galaxy:
-      logo_src: /galaxy/static/favicon.png
       single_user: "example@fake.org"
       admin_users: "example@fake.org"
+      enable_tool_document_cache: "true"
 
 ingress:
   enabled: true
@@ -65,7 +65,9 @@ ingress:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     kubernetes.io/tls-acme: "true"
   hosts:
-    - "domain.example.com"
+    - host: "domain.example.com"
+      paths:
+        - path: "/galaxy"
   tls:
     - hosts: ["domain.example.com"]
       secretName: "galaxy-domain-example-com-key"

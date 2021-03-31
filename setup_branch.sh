@@ -15,7 +15,9 @@ git clone -b "dev" --single-branch https://github.com/galaxyproject/galaxy &
 git clone -b "master" --single-branch https://github.com/galaxyproject/galaxy-helm
 cd galaxy-helm
 git checkout -b "$1"
-cd ..
+cd galaxy
+helm dep update
+cd ../..
 wait
 cd galaxy
 git checkout -b "$1"
