@@ -1,23 +1,17 @@
 #!/bin/bash
 set -x
 
-if [ -z "$1" ]
-  then
-    echo "You must supply a branch name. eg: bash update_links.sh my_branch my.domain.com"
-    exit
-fi
-
-if [ -z "$2" ]
-  then
-    echo "You must supply a domain name. eg: bash update_links.sh my_branch my.domain.com [origin/dev]. Hint: use 192.168.2.2.xip.io for IPs"
-    exit
-fi
-
 if [ -z "$3" ]
+  then
+    echo "You must supply a branch, domain, and path. eg: bash update_links.sh my_branch my.domain.com /galaxypath [origin/dev]. Hint: use 192.168.2.2.xip.io for IPs"
+    exit
+fi
+
+if [ -z "$4" ]
   then
     BASE_REF="origin/dev"
   else
-    BASE_REF=$3
+    BASE_REF=$4
 fi
 
 BASEDIR=$(pwd)
@@ -69,7 +63,7 @@ done < "$BRANCHDIR/unique"
 DOMAIN="$2"
 SANITIZED_DOMAIN=$(echo "$2" | sed "s/\./-/g" )
 
-sed "s/domain\.example\.com/$2/g" galaxy-values.yaml | sed "s/domain-example-com/$SANITIZED_DOMAIN/g" > "$BRANCHDIR/values.yaml"
+sed "s/domain\.example\.com/$2/g" galaxy-values.yaml | sed "s/domain-example-com/$SANITIZED_DOMAIN/g" | sed "s#\/examplepath#$3#g" > "$BRANCHDIR/values.yaml"
 
 rm "branches/$1/filelist"
 rm "branches/$1/unique"

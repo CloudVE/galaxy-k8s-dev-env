@@ -27,7 +27,7 @@ configs:
           kubernetes.io/tls-acme: "true"
   galaxy.yml:
     galaxy:
-      logo_src: /galaxy/static/favicon.png
+      logo_src: /examplepath/static/favicon.png
       single_user: "alex@fake.org"
       admin_users: "alex@fake.org"
       interactivetools_enable: true
@@ -73,8 +73,8 @@ ingress:
   hosts:
     - host: "domain.example.com"
       paths:
-        - path: "/galaxy"
-  path: "/galaxy"
+        - path: "/examplepath"
+  path: "/examplepath"
   tls:
     - hosts: ["domain.example.com"]
       secretName: "galaxy-domain-example-com-key"
