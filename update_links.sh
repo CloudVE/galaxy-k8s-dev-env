@@ -32,7 +32,7 @@ fi
 echo "Making list"
 git diff --name-only "$BASE_REF" "$1" > ../filelist
 git diff --name-only >> ../filelist
-sort -u ../filelist >> ../unique
+sort -u ../filelist > ../unique
 cat ../unique
 
 cd ../../..
