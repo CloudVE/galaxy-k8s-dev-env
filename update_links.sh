@@ -30,10 +30,10 @@ if [[ -n $abort ]]; then
 fi
 
 echo "Making list"
-git diff --name-only "$BASE_REF" "$1" > ../filelist
-git diff --name-only >> ../filelist
-sort -u ../filelist > ../unique
-cat ../unique
+git diff --name-only "$BASE_REF" "$1" > "$BRANCHDIR/filelist"
+git diff --name-only >> "$BRANCHDIR/filelist"
+sort -u "$BRANCHDIR/filelist" > "$BRANCHDIR/unique"
+cat "$BRANCHDIR/unique"
 
 cd ../../..
 
