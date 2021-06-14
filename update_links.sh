@@ -55,8 +55,7 @@ do
     applyToJob: true
     applyToWeb: true
     applyToWorkflow: true
-    content: |
-      {{- (.Files.Get "extrafiles/$p") }}
+    path: "extrafiles/$p"
 EOF
 done < "$BRANCHDIR/unique"
 
