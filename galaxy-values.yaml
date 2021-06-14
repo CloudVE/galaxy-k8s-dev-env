@@ -28,8 +28,6 @@ configs:
   galaxy.yml:
     galaxy:
       logo_src: /examplepath/static/favicon.png
-      single_user: "alex@fake.org"
-      admin_users: "alex@fake.org"
       interactivetools_enable: true
       outputs_to_working_directory: true
       interactivetools_prefix: it
