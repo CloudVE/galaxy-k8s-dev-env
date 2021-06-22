@@ -33,7 +33,7 @@ configs:
       interactivetools_prefix: it
       interactivetools_map: database/interactivetools_map.sqlite
       interactivetools_proxy_host: "{{ $host := index .Values.ingress.hosts 0 }}{{$host.host}}"
-      galaxy_infrastructure_url: "http://{{$host := index .Values.ingress.hosts 0}}{{$path := index $host.paths 0}}{{$host.host}}{{$path.path}}"
+      interactivetools_base_path: "{{$host := index .Values.ingress.hosts 0}}{{$path := index $host.paths 0}}{{$path.path}}"
       interactivetools_shorten_url: True
       tool_config_file: "/galaxy/server/config/tool_conf.xml,/cvmfs/cloud.galaxyproject.org/config/shed_tool_conf.xml,/galaxy/server/config/tool_conf_its.xml"
   tool_conf_its.xml: |
