@@ -20,6 +20,8 @@ Note: In order for the code injection to work, the code on the image used needs 
 
 ## Quick Start
 
+### One-time setup
+
 1. Clone the scripts repository:
 
 ```
@@ -27,21 +29,25 @@ git clone https://github.com/CloudVE/galaxy-k8s-dev-env
 cd galaxy-k8s-dev-env
 ```
 
-2.a) Using existing clones of `galaxy` and `galaxy-helm`
+2. a) Using existing clones of `galaxy` and `galaxy-helm`
 ```
 bash symlink_branch.sh $MYBRANCH /path/to/galaxy /path/to/galaxy-helm
 ```
 NOTE: This will run `git checkout -b $MYBRANCH` in both repositories
 
-2.b) Start with fresh clones of `galaxy` and `galaxy-helm`
+
+2. b) Start with fresh clones of `galaxy` and `galaxy-helm`
 ```
 bash setup_branch.sh $MYBRANCH
 ```
 
-3. Make changes to code in `galaxy` and `galaxy-helm` repositories. If you symlinked existing repositories, you can continue to use them and make commits or keep changes uncommitted until you're ready to preview. You must have `$MYBRANCH` checked out before the next step.
+### Repeatable
+
+3. Make changes to code in `galaxy` and `galaxy-helm` repositories. If you used `setuo_branch.sh`, you will find your clones under `galaxy-k8s-dev-env/branches/$MYBRANCH/galaxy[-helm]`.
+If you symlinked existing repositories, you can continue to use them and make commits or keep changes uncommitted until you're ready to preview. You must have `$MYBRANCH` checked out before the next step.
 
 
-5. Detect updates from the base branch.
+4. Detect updates from the base branch.
 ```
 bash update_links.sh $MYBRANCH $GXYDOMAIN /my-desired-path $BASEBRANCH
 ```
