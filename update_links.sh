@@ -55,7 +55,7 @@ do
     applyToJob: true
     applyToWeb: true
     applyToWorkflow: true
-    tpl: false
+    tpl: true
     content: |
       {{- (.Files.Get "extrafiles/$p") }}
 EOF
